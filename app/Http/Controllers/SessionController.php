@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use Auth;
-
 class SessionController extends Controller
 {
     public function __construct(){
@@ -23,8 +22,15 @@ class SessionController extends Controller
             'password' => 'required'
         ]);
         if (Auth::attempt($credentials,$request->has('remember'))) {
-            session()->flash('success','欢迎回来');
-            return redirect()->intended(route('users.show', [Auth::user()]));
+            if (Auth::user()->activated) {
+               session()->flash('success','欢迎回来');
+                return redirect()->intended(route('users.show', [Auth::user()]));
+            }else{
+                Auth::logout();
+                session()->flash('warning','您的账号未激活，请检查邮箱的链接进行激活');
+                return redirect('/');
+            }
+
         }else{
             session()->flash('danger','很抱歉，您的邮箱和密码验证错误');
             return redirect()->back();
